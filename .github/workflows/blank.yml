@@ -1,0 +1,121 @@
+local Mercury = loadstring(game:HttpGet("https://raw.githubusercontent.com/deeeity/mercury-lib/master/src.lua"))()
+
+-- Criar a interface principal
+local GUI = Mercury:Create{
+    Name = "Cregador Hub",
+    Size = UDim2.fromOffset(600, 400),
+    Theme = Mercury.Themes.Dark,
+    Link = "https://github.com/deeeity/mercury-lib"
+}
+
+-- Notificação de boas-vindas
+GUI:Notification{
+    Title = "Bem-vindo ao Cregador Hub",
+    Text = "Script carregado com sucesso!",
+    Duration = 3,
+    Callback = function() end
+}
+
+-- Criar uma aba para funcionalidades principais
+local MainTab = GUI:Tab{
+    Name = "Principal",
+    Icon = "rbxthumb://type=Asset&id=3517717568&w=150&h=150"
+}
+
+-- Função auxiliar para encontrar jogadores pelo nome
+local function getPlayerByName(name)
+    for _, player in ipairs(game.Players:GetPlayers()) do
+        if player.Name:lower():sub(1, #name) == name:lower() then
+            return player
+        end
+    end
+    return nil
+end
+
+-- Funcionalidade: Loop Kill
+MainTab:Toggle{
+    Name = "Loop Kill",
+    StartingState = false,
+    Description = "Ativa/desativa o Loop Kill no jogador alvo.",
+    Callback = function(state)
+        getgenv().loopKill = state
+        while getgenv().loopKill do
+            local targetPlayer = getPlayerByName(getgenv().targetName)
+            if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("Humanoid") then
+                targetPlayer.Character.Humanoid.Health = 0
+            end
+            wait(1)
+        end
+    end
+}
+
+MainTab:Textbox{
+    Name = "Nome do Jogador Alvo",
+    Placeholder = "Digite o nome do jogador",
+    Callback = function(text)
+        getgenv().targetName = text
+    end
+}
+
+-- Funcionalidade: ESP (Extra Sensory Perception)
+MainTab:Toggle{
+    Name = "ESP",
+    StartingState = false,
+    Description = "Ativa/desativa a visualização de jogadores através de paredes.",
+    Callback = function(state)
+        getgenv().espEnabled = state
+        while getgenv().espEnabled do
+            for _, player in ipairs(game.Players:GetPlayers()) do
+                if player ~= game.Players.LocalPlayer and player.Character then
+                    local highlight = player.Character:FindFirstChildOfClass("Highlight")
+                    if not highlight and getgenv().espEnabled then
+                        highlight = Instance.new("Highlight")
+                        highlight.Parent = player.Character
+                        highlight.FillColor = Color3.fromRGB(255, 0, 0)
+                    elseif highlight and not getgenv().espEnabled then
+                        highlight:Destroy()
+                    end
+                end
+            end
+            wait(1)
+        end
+    end
+}
+
+-- Funcionalidade: Aumentar Velocidade
+MainTab:Slider{
+    Name = "Velocidade do Jogador",
+    Default = 16,
+    Min = 16,
+    Max = 100,
+    Callback = function(value)
+        if game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
+            game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = value
+        end
+    end
+}
+
+-- Funcionalidade: Aumentar Altura do Salto
+MainTab:Slider{
+    Name = "Altura do Salto",
+    Default = 50,
+    Min = 50,
+    Max = 200,
+    Callback = function(value)
+        if game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
+            game.Players.LocalPlayer.Character.Humanoid.JumpPower = value
+        end
+    end
+}
+
+-- Funcionalidade: Teletransporte para Jogador
+MainTab:Button{
+    Name = "Teletransportar para Jogador",
+    Description = "Teletransporta você para o jogador alvo.",
+    Callback = function()
+        local targetPlayer = getPlayerByName(getgenv().targetName)
+        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame
+        end
+    end
+}
